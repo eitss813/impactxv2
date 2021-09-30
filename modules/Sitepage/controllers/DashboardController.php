@@ -2540,6 +2540,8 @@ class Sitepage_DashboardController extends Core_Controller_Action_Standard {
         $rolesTable = Engine_Api::_()->getDbtable('roles', 'sitepagemember');
         $rolesTableName = $rolesTable->info('name');
 
+        
+
         if ($this->getRequest()->isPost()) {
             $values = $this->getRequest()->getPost();
             $row = $rolesTable->createRow();
@@ -2548,8 +2550,74 @@ class Sitepage_DashboardController extends Core_Controller_Action_Standard {
             $row->page_category_id = $sitepage->category_id;
             $row->page_id = $sitepage->page_id;
             $row->save();
-        }
 
+            // role Id
+            $roleId = $row->getIdentity();
+          
+            // We will add the new form [Questwalk]
+            $values = array(
+                'id' => '',
+                'title' => 'Member Joining Form: ' . $values['category_name'],
+                'description' => '',
+                'photo' => '',
+                'enable' => 1,
+            );
+            
+            $user = Engine_Api::_() -> user() -> getViewer();
+            $table = Engine_Api::_() -> getDbTable('forms', 'yndynamicform');
+          
+            // Begin transaction
+            $db = $table -> getAdapter();
+            $db -> beginTransaction();
+
+            try {
+                $form = $table -> createRow();
+
+                $form -> setFromArray($values);
+                $form -> user_id = $user -> getIdentity();
+
+                $optionId = Engine_Api::_()->getApi('core', 'Yndynamicform')->typeCreate($form->title);
+                if (!empty($values['photo'])) {
+                    $form->setPhoto($new_form->photo);
+                }
+                $form->option_id = $optionId;
+                $form->privacy = 3; // 3 mean everyone can see this form
+                $form->page_id = (int) $sitepage->page_id;
+
+                $form -> save();
+
+                $last_form_id =  $form['form_id'];
+
+                // Auth
+                $auth = Engine_Api::_()->authorization()->context;
+                $roles = array('owner', 'owner_member', 'owner_member_member', 'owner_network', 'registered', 'everyone');
+
+                foreach ($roles as $i => $role)
+                {
+                    $auth->setAllowed($form, $role, 'view', 1);
+                    $auth->setAllowed($form, $role, 'comment', 1);
+                    $auth->setAllowed($form, $role, 'submission', 1);
+                }
+
+                $formmappingTable = Engine_Api::_()->getDbtable('formmappings', 'impactx');
+                $formmappingTableName = $formmappingTable->info('name');
+
+                $row = $formmappingTable->createRow();
+               
+                $row->page_id = $sitepage->page_id;
+                $row->form_id = $last_form_id;
+                $row->option_id = $optionId ;
+                $row->role_id =  $roleId ;
+                $row->save();
+
+                $db -> commit();
+            } catch (Exception $e) {
+                $db -> rollBack();
+                throw $e;
+            }
+
+        }
+      
         $select = $rolesTable->select()
             ->from($rolesTableName)
             ->where($rolesTableName . '.is_admincreated IN (?)', (array) $is_admincreated)
@@ -3714,7 +3782,7 @@ class Sitepage_DashboardController extends Core_Controller_Action_Standard {
                 $sitePageTable->update(array(
                     'member_invite' => $settingValues['member_invite'],
                     'member_approval' => $settingValues['member_approval'],
-                    'organization_map' => $settingValues['organization_map'],
+                    'after_join_notification' => $settingValues['after_join_notification'],
                     'modified_date' => date('Y-m-d H:i:s')
                 ), array(
                     'page_id = ?' => $page_id

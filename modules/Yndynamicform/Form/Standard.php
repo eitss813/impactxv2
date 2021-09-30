@@ -20,6 +20,9 @@
 class Yndynamicform_Form_Standard extends Fields_Form_Standard
 {
     protected $_mode;
+    
+    public $ajaxValidation = true;
+    
     public function setMode($mode)
     {
         $this -> _mode = $mode;

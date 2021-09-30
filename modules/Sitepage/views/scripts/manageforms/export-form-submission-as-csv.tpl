@@ -19,8 +19,7 @@ header("Cache-Control: no-store, no-cache, must-revalidate");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 header("Content-type: application/vnd.ms-excel;charset:UTF-8");
-header("Content-Disposition: attachment; filename=" . $this->view->yndform->getTitle() . '- Submissions.csv');
-// header("Content-Disposition: attachment; filename=" . $this->view->yndform->getTitle() . '- Submissions.xls');
+header("Content-Disposition: attachment; filename=" . $this->yndform->getTitle() . '- Submissions.xls');
 print "\n"; // Add a line, unless excel error..
 ?>
 
@@ -32,7 +31,7 @@ print "\n"; // Add a line, unless excel error..
 
 <?php $body = array();?>
 
-<?php foreach ($this->view->form_submitted_paginator as $entry_details): ?>
+<?php foreach ($this->form_submitted_paginator as $entry_details): ?>
 
     <?php $bodyContent = array();?>
 
@@ -70,7 +69,7 @@ print "\n"; // Add a line, unless excel error..
     ?>
     <?php
         $options = array();$options['format'] = 'H:m a, F';
-        $bodyContent[] = $this->view->locale()->toDateTime($entry->creation_date, $options);
+        $bodyContent[] = $this->locale()->toDateTime($entry->creation_date, $options);
     ?>
 
     <?php $uniqueTitles = array();?>

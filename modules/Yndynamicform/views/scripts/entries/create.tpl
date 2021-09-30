@@ -12,52 +12,39 @@ if($this->project_id && !$this->user_id){
 if(!$this->project_id && $this->user_id){
     $entriesres = Engine_Api::_()->getDbTable('entries', 'yndynamicform')->getEntriesByFormIdProjectId($this -> form -> getIdentity(), $this->user_id);
 }
-?>
 
+?>
 <script>
-    /*
-    * Validate the form fields and submit the form, If no error found!
-    */
-    function ajax_form_validation() {
-        // is_validation_ajax_called = true;
-        
-        var data = document.getElementById("form_detail").toQueryString().parseQueryString();
-        var formJson = JSON.encode(data);
-/*
+    function validateFormFields() {
+        var result = 0;
         var elements = document.getElementById("form_detail").elements;
         var obj ={};
         for(var i = 0 ; i < elements.length ; i++){
             var item = elements.item(i);
             obj[item.name] = item.value;
         }
-  */  
+
+
         var url = en4.core.baseUrl + 'organizations/manageforms/validate-form-fields';
         var request = new Request.HTML({
             url: url,
             method: 'POST',
             data: {
                 format: 'html',
-                'post_val': formJson, // JSON.stringify(obj),
+                'post_val': JSON.stringify(obj),
                 'ajaxform_option_id': '<?php echo $this->ajaxform_option_id ?>',
                 'ajaxform_field_id': '<?php echo $this->ajaxform_field_id ?>'
             },
             onSuccess: function (responseTree, responseElements, responseHTML, responseJavaScript) {
-                if( responseHTML.length > 0 ) {
-                    window.scrollTo({top: 0, behavior: 'smooth'});
-                    return false;
-                }else {
-                    if (validate_form()) {
-                        document.getElementById("form_detail").submit();
-                    } else {
-                        return false;
-                    }
-                }
+                result = responseHTML.length;
+                console.log(responseHTML.length);
             }
         });
         request.send();
+        
+        return result;
     }    
 </script>
-
 <style>
 
     #phn_err{
@@ -164,7 +151,6 @@ if(!$this->project_id && $this->user_id){
 
                 <!-- STYLE FOR SUBMIT BUTTON FLLOW FORM SETTINGS -->
                 <?php if ($this->new_entry_form): ?>
-                <div id="global_form_main_error"></div>
                 <div class="global_form">
                     <!--  BEGIN: Config for form with form settings  -->
                     <?php
@@ -221,13 +207,9 @@ if(!$this->project_id && $this->user_id){
                     if ($this->totalPageBreak)
                     echo $this->partial('_progress-indicator.tpl', 'yndynamicform', array('pageBreakConfigs' => $this->pageBreakConfigs, 'totalPageBreak' => ($this->totalPageBreak + 2)));
 
-                    // $this->new_entry_form->setAttribs(array('id' => 'form_detail', 'action' => "$this->formAction", 'onsubmit' => 'return validate_form()', 'enctype' => 'multipart/form-data', 'style' => $this->form->style));
-                    $this->new_entry_form->setAttribs(array('id' => 'form_detail', 'enctype' => 'multipart/form-data', 'style' => $this->form->style));
+                    $this->new_entry_form->setAttribs(array('id' => 'form_detail', 'onsubmit' => 'return validate_form()', 'enctype' => 'multipart/form-data', 'style' => $this->form->style));
                     if (count($this->new_entry_form) > 1) {
-                        $this->new_entry_form->submit_button->type = 'button';
-                        $this->new_entry_form->submit_button->onclick = 'ajax_form_validation()';
-                        
-                        echo $this->new_entry_form->render($this);
+                    echo $this->new_entry_form->render($this);
                     }
 
                     // RENDER TO CONDITIONAL LOGIC
@@ -258,6 +240,13 @@ if(!$this->project_id && $this->user_id){
                     var clickSubmit = false;
 
                     function validate_form() {
+                    
+                        alert("HELLO");
+                        return false;
+
+                        validateFormFields();
+                        return false;
+                    
                         if (totalPageBreak) {
                             if (!validateRequiredFieldInPage(totalPageBreak + 1))
                                 return false;
@@ -642,7 +631,6 @@ if(!$this->project_id && $this->user_id){
 
                         <!-- STYLE FOR SUBMIT BUTTON FLLOW FORM SETTINGS -->
                         <?php if ($this->edit_entry_form): ?>
-                        <div id="global_form_main_error"></div>
                         <div class="global_form">
                             <!--  Render form detail  -->
                             <?php
@@ -652,8 +640,7 @@ if(!$this->project_id && $this->user_id){
                             if ($this->totalPageBreak)
                             echo $this->partial('_progress-indicator.tpl', 'yndynamicform', array('pageBreakConfigs' => $this->pageBreakConfigs, 'totalPageBreak' => ($this->totalPageBreak + 2)));
 
-                            // $this->edit_entry_form->setAttribs(array('id' => 'form_detail', 'action' => "$this->formAction", 'onsubmit' => 'return validate_form()', 'enctype' => 'multipart/form-data', 'style' => $this->form->style));
-                            $this->edit_entry_form->setAttribs(array('id' => 'form_detail', 'enctype' => 'multipart/form-data', 'style' => $this->form->style));
+                            $this->edit_entry_form->setAttribs(array('id' => 'form_detail', 'onsubmit' => 'return validate_form()', 'enctype' => 'multipart/form-data', 'style' => $this->form->style));
                             if (count($this->edit_entry_form) > 0) {
                             echo $this->edit_entry_form->render($this);
 
@@ -689,8 +676,14 @@ if(!$this->project_id && $this->user_id){
                                     return;
                                 }
                             }
-                            
                             function validate_form() {
+                            
+
+
+                        var has_error = validateFormFields();
+                        alert(has_error);
+                        return false;
+                            
                                 if (totalPageBreak) {
                                     if (!validateRequiredFieldInPage(totalPageBreak + 1))
                                         return false;
@@ -1056,7 +1049,6 @@ if(!$this->project_id && $this->user_id){
     var $j = jQuery.noConflict();
     $j(document).ready(function() {
         const metrics_field_id_array = [];
-        const matrics_aggregation_field_ids_array = [];
         var matrics_aggregation_element = null;
         var matrics_aggregation_element_id = null;
         var matrics_aggregation_field_ids = null;
@@ -1076,10 +1068,9 @@ if(!$this->project_id && $this->user_id){
                 var metrics_label = document.getElementById(matrics_aggregation_element_id+'-label').innerHTML;
                 document.getElementById(matrics_aggregation_element_id+'-label').innerHTML = metrics_label + ' (Calculated automatically)';
                 document.getElementById(matrics_aggregation_element_id).classList.add("metric_disable");
-                document.getElementById(matrics_aggregation_element_id).readOnly = true;
+                document.getElementById(matrics_aggregation_element_id).readonly = true;
                 matrics_aggregation_field_ids = element.getAttribute("metric_aggregate_fields");
                 matrics_aggregation_field_ids = matrics_aggregation_field_ids.split(" ");
-                matrics_aggregation_field_ids_array[matrics_aggregation_element_id] = matrics_aggregation_field_ids;
             }
             
             // Run the logic of Own Formula
@@ -1098,10 +1089,9 @@ if(!$this->project_id && $this->user_id){
                 
                 document.getElementById(matrics_aggregation_element_id+'-label').innerHTML = metrics_label + ' (Calculated automatically) <br />Formula: ' + own_formula_input_value;
                 document.getElementById(matrics_aggregation_element_id).classList.add("metric_disable");
-                document.getElementById(matrics_aggregation_element_id).readOnly = true;
+                document.getElementById(matrics_aggregation_element_id).readonly = true;
                 matrics_aggregation_field_ids = element.getAttribute("metric_aggregate_fields");
                 matrics_aggregation_field_ids = matrics_aggregation_field_ids.split(" ");
-                matrics_aggregation_field_ids_array[matrics_aggregation_element_id] = matrics_aggregation_field_ids;
             }
         }
 
@@ -1229,7 +1219,7 @@ if(!$this->project_id && $this->user_id){
                     var full_id = element.id;
                     id = id.split('_');
                     id = id[id.length - 1];
-                    var isExistYn = matrics_aggregation_field_ids_array[current_metrics_id].includes(id);
+                    var isExistYn = matrics_aggregation_field_ids.includes(id);
 
                     if(isExistYn === true){
                         var data = document.getElementById(full_id).value;
@@ -1247,7 +1237,7 @@ if(!$this->project_id && $this->user_id){
                     }
                 }
 
-                if( temp_metric_aggregate_type == 'own_formula' && own_formula != null && (own_formula.search("field_id_") < 0) ) {
+                if( temp_metric_aggregate_type == 'own_formula' ) {
                     var formula_value = eval(own_formula);
                     formula_value = formula_value.toFixed(2);
                     document.getElementById(current_metrics_id).value = formula_value;

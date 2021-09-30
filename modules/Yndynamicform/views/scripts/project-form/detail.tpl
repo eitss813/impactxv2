@@ -60,7 +60,6 @@
 
                 <!-- STYLE FOR SUBMIT BUTTON FLLOW FORM SETTINGS -->
                 <?php if ($this->new_entry_form): ?>
-                <div id="global_form_main_error"></div>
                 <div class="global_form">
                     <!--  BEGIN: Config for form with form settings  -->
                     <?php

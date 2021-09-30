@@ -3,7 +3,7 @@
   array (
     'type' => 'module',
     'name' => 'impactx',
-    'version' => '5.0.3',
+    'version' => '5.0.0',
     'sku' => 'impactx',
     'path' => 'application/modules/Impactx',
     'title' => 'Impactx Customization',

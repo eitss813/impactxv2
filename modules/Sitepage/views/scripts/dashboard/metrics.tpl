@@ -49,8 +49,6 @@
                             <th class="header_title">Options </th>
 
                             <th class="header_title">Visibility </th>
-                            
-                            <th class="header_title">Project Visibility </th>
 
                         </tr>
                         </thead>
@@ -78,13 +76,6 @@
                                     <td class="header_title">
                                         <label class="switch">
                                             <input class="custom_toggle" type="checkbox" onclick="visibility('<?php echo $metric->metric_id ;?>')" <?php echo $metric->visibility ? " checked" : "" ; ?> >
-                                            <span class="slider round"></span>
-                                        </label>
-                                    </td>
-                                    <td class="header_title">
-                                        <?php $getProjectSideVisibility = Engine_Api::_()->impactx()->getProjectSideVisibility($metric->metric_id); ?>
-                                        <label class="switch">
-                                            <input class="custom_toggle" type="checkbox" onclick="project_visibility('<?php echo $metric->metric_id ;?>')" <?php echo $getProjectSideVisibility ? " checked" : "" ; ?> >
                                             <span class="slider round"></span>
                                         </label>
                                     </td>
@@ -201,23 +192,6 @@
 
 </style>
 <script>
-    function project_visibility(metric_id){
-        var request = new Request.HTML({
-            url: en4.core.baseUrl + 'impactx/metrics/toggle-visibility',
-            method: 'POST',
-            data: {
-                format: 'html',
-                metric_id: metric_id
-            },
-            onComplete : function(responseTree, responseElements, responseHTML, responseJavaScript) {
-                if( responseHTML.search('Success') >= 0 ) {
-                    alert("Metrics successfully updated for all projects.");
-                }
-            }
-        })
-        request.send();
-    }
-    
     function visibility(metric_id){
         var request = new Request.JSON({
             url: en4.core.baseUrl + 'sitepage/dashboard/visible-metric',

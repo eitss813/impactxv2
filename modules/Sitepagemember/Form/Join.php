@@ -10,50 +10,98 @@
  * @version    $Id: Join.php 2013-03-18 00:00:00Z SocialEngineAddOns $
  * @author     SocialEngineAddOns
  */
- 
-class Sitepagemember_Form_Join extends Engine_Form	{
 
-  public function init() {
-  
+class Sitepagemember_Form_Join extends Engine_Form
+{
+
+  public function init()
+  {
+    // By Questwalk [SR813]
+    $page_id = Zend_Controller_Front::getInstance()->getRequest()->getParam('page_id', null);
+    $is_request = Zend_Controller_Front::getInstance()->getRequest()->getParam('is_request', null);
+    $viewer = Engine_Api::_()->user()->getViewer();
+    $viewer_id = $viewer->getIdentity();
+    $action = "dynamic-form/entry/join-org-role-form/1/user_id/" . $viewer_id . "/is_role/1/page_id/". $page_id ."";
+    
+    if( $is_request ){
+      $action = "dynamic-form/entry/join-org-role-form/1/user_id/" . $viewer_id . "/is_role/1/page_id/". $page_id ."/is_request/1";
+    }
+
+    // End
     $this->setTitle('Join Page')
-         ->setDescription('Would you like to join this page?');
+      ->setAction( $action)
+      ->setMethod('GET')
+      ->setDescription('Would you like to join this page?');
 
-    $page_id = Zend_Controller_Front::getInstance()->getRequest()->getParam('page_id',null);
+    if (Engine_Api::_()->getApi('settings', 'core')->getSetting('pagemember.title', 1)) {
 
-		if (Engine_Api::_()->getApi( 'settings' , 'core' )->getSetting( 'pagemember.title', 1)) {
-		
-			//$roles = Engine_Api::_()->getDbtable('roles', 'sitepagemember')->getRolesAssoc($page_id);
-// 			if (!empty($roles)) {
-// 				asort($roles, SORT_LOCALE_STRING);
-// 				$roleOptions = array('0' => '');
-// 				foreach( $roles as $k => $v ) {
-// 					$roleOptions[$k] = $v;
-// 				}
-// 				
-// 				$this->addElement('Select', 'role_id', array(
-// 					'label' => 'ROLE',
-// 					'multiOptions' => $roleOptions,
-// 				));
-// 			}
-			
-			$roles = Engine_Api::_()->getDbtable('roles', 'sitepagemember')->getRolesAssoc($page_id);
-			if (!empty($roles)) {
-				$roleKey = array();
-				foreach ($roles as $k => $role) {  
-					$role_name[$k] = $role;
-					$roleKey[] = $k;
-				}
-				reset($role_name);
+      // Below code commented by shahabuddin [Questwalk] not in use right now
 
-				$this->addElement('Multiselect', 'role_id', array(
-					'label' => 'ROLE',
-					'multiOptions' => $role_name,
-					'value' => $roleKey,
-				));
+
+      //$roles = Engine_Api::_()->getDbtable('roles', 'sitepagemember')->getRolesAssoc($page_id);
+      // 			if (!empty($roles)) {
+      // 				asort($roles, SORT_LOCALE_STRING);
+      // 				$roleOptions = array('0' => '');
+      // 				foreach( $roles as $k => $v ) {
+      // 					$roleOptions[$k] = $v;
+      // 				}
+      // 				
+      // 				$this->addElement('Select', 'role_id', array(
+      // 					'label' => 'ROLE',
+      // 					'multiOptions' => $roleOptions,
+      // 				));
+      // 			}
+      // By Questwalk [SR813]
+      $roles = Engine_Api::_()->getDbtable('roles', 'sitepagemember')->getRolesAssoc($page_id);
+
+      if (!empty($roles)) {
+        $roleKey = array();
+        $role_name[0] = '';
+        foreach ($roles as $k => $role) {
+
+          $role_name[$k] = $role;
+          $roleKey[] = $k;
+        }
+        reset($role_name);
+
+        //				$this->addElement('Multiselect', 'role_id', array(
+        //					'label' => 'ROLE',
+        //					'multiOptions' => $role_name,
+        //					'value' => $roleKey,
+        //				));
+
+        $this->addElement('Select', 'role_id', array(
+          'label' => 'ROLE',
+          'allowEmpty' => false,
+          'required' => true,
+          'multiOptions' => $role_name,
+
+        ));
       }
-		}
+    }
 
-    if (Engine_Api::_()->getApi( 'settings' , 'core' )->getSetting( 'pagemember.date', 1)) {
+    $roles = Engine_Api::_()->getDbtable('roles', 'sitepagemember')->getRolesAssoc($page_id);
+
+    if (!empty($roles)) {
+      $roleKey = array();
+      $role_name[0] = '';
+      foreach ($roles as $k => $role) {
+
+        $role_name[$k] = $role;
+        $roleKey[] = $k;
+      }
+      reset($role_name);
+
+      $this->addElement('Select', 'role_id', array(
+        'label' => 'ROLE',
+        'allowEmpty' => false,
+        'required' => true,
+        'multiOptions' => $role_name,
+
+      ));
+    }
+
+    if (Engine_Api::_()->getApi('settings', 'core')->getSetting('pagemember.date', 1)) {
       $curYear = date('Y');
       $year = array('Year');
 
@@ -61,17 +109,18 @@ class Sitepagemember_Form_Join extends Engine_Form	{
         $year[$curYear] = $curYear;
         $curYear--;
       }
-      
+
       $this->addElement('Dummy', 'date', array(
-         'label' => 'MEMBER_DATE',
+        'label' => 'MEMBER_DATE',
       ));
-      
+
       $this->addElement('Select', 'year', array(
-				//'label' => 'MEMBER_DATE',
-				'allowEmpty' => false,
-				'required' => true,
-				'multiOptions' => $year,
-				'value' => date('Y')
+        //'label' => 'MEMBER_DATE',
+        'allowEmpty' => false,
+        'required' => true,
+        // 'attribs' => array('style' => 'display:none;'),
+        'multiOptions' => $year,
+        'value' => date('Y')
       ));
 
       $months = array('Month');
@@ -80,22 +129,23 @@ class Sitepagemember_Form_Join extends Engine_Form	{
       }
 
       $this->addElement('Dummy', 'addmonth', array(
-          'description' => "<a href='javascript:void(0);' onclick ='showMonth(0);' onblur='setTimeMonth();' >" . Zend_Registry::get('Zend_Translate')->_('+Add Month') . "</a>",
+        'description' => "<a href='javascript:void(0);' onclick ='showMonth(0);' onblur='setTimeMonth();' >" . Zend_Registry::get('Zend_Translate')->_('+Add Month') . "</a>",
+        
       ));
       $this->getElement('addmonth')->getDecorator('Description')->setOptions(array('placement', 'APPEND', 'escape' => false));
       $this->addElement('Select', 'month', array(
-				//'label' => 'Month',
-				'allowEmpty' => true,
-				'required' => false,
-				'attribs' => array('style' => 'display:none;'),
-				'multiOptions' => $months,
-				'onblur' => 'showAddmonth(2);',
-				'onclick' => "showMonth(1);",
-				'onchange' => "showAddday(2);"
+        //'label' => 'Month',
+        'allowEmpty' => true,
+        'required' => false,
+        'attribs' => array('style' => 'display:none;'),
+        'multiOptions' => $months,
+        'onblur' => 'showAddmonth(2);',
+        'onclick' => "showMonth(1);",
+        'onchange' => "showAddday(2);"
       ));
 
       $this->addElement('Dummy', 'addday', array(
-          'description' => "<a href='javascript:void(0);' onclick ='showDay(0);' onblur='setTime();' id='addday' style='display:none;' >" . Zend_Registry::get('Zend_Translate')->_('+Add Day') . "</a>",
+        'description' => "<a href='javascript:void(0);' onclick ='showDay(0);' onblur='setTime();' id='addday' style='display:none;' >" . Zend_Registry::get('Zend_Translate')->_('+Add Day') . "</a>",
       ));
       $this->getElement('addday')->getDecorator('Description')->setOptions(array('placement', 'APPEND', 'escape' => false));
 
@@ -105,18 +155,18 @@ class Sitepagemember_Form_Join extends Engine_Form	{
       }
 
       $this->addElement('Select', 'day', array(
-				'allowEmpty' => true,
-				'required' => false,
-				'attribs' => array('style' => 'display:none;'),
-				'multiOptions' => $day,
-				'onblur' => 'showAddday(2);',
-				'onclick' => "showDay(1);",
-				'onchange' => "showAddday(2);"
+        'allowEmpty' => true,
+        'required' => false,
+        'attribs' => array('style' => 'display:none;'),
+        'multiOptions' => $day,
+        'onblur' => 'showAddday(2);',
+        'onclick' => "showDay(1);",
+        'onchange' => "showAddday(2);"
       ));
     }
 
     $this->addElement('Button', 'submit', array(
-      'label' => 'Join Page',
+      'label' => 'Continue',
       'ignore' => true,
       'decorators' => array('ViewHelper'),
       'type' => 'submit'
@@ -139,6 +189,6 @@ class Sitepagemember_Form_Join extends Engine_Form	{
     ), 'buttons');
 
 
-    $this->setAction(Zend_Controller_Front::getInstance()->getRouter()->assemble(array()))->setMethod('POST');
+    // $this->setAction(Zend_Controller_Front::getInstance()->getRouter()->assemble(array()))->setMethod('POST');
   }
 }

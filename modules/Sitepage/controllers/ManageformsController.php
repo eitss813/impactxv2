@@ -105,7 +105,6 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
         $this -> view -> params = $formValues;
 
 
-
     }
     public function createAction()
     {
@@ -471,6 +470,7 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
         $standardFields = array();
         $advancedFields = array();
         $analyticsFields = array();
+      
         foreach( $types as $fieldType => $info ) {
 
 
@@ -560,6 +560,7 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
 
     public function fieldCreateAction()
     {
+        
         $this->view->page_id = $page_id = $this->_getParam('page_id');
         $this->view->sitepage = $sitepage = Engine_Api::_()->getItem('sitepage_page', $page_id);
 
@@ -598,11 +599,6 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
                 'label' => 'Maximum Value',
                 'value'=> null ,
             ));
-        }
-        
-        $tempCfType = array("multi_checkbox", "select", "radio", "multiselect");
-        if( in_array($cfType, $tempCfType) ) {
-            $form->execute->setLabel("Continue to Add Choices");
         }
 
 
@@ -678,7 +674,7 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
             }
             
             $validateOwnFormulaInput = $params['own_formula_input'];
-            $tempAggregateFields = $params['own_formula_by_id'] = $params['own_formula_input'];
+            $params['own_formula_by_id'] = $params['own_formula_input'];
             $params['own_actual_formula'] = $params['own_formula_input'];
             $ownFormulaMetricsAlList = @json_decode($params['own_formula_metric_all_list']);
             foreach( $ownFormulaMetricsAlList as $metrics ) {
@@ -686,10 +682,7 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
                 $tempReplaceText = 'field_id_' . $metrics->field_id;
                 $replaceText = $metrics->label; // . '_' . $tempReplaceText;
                 $validateOwnFormulaInput = @str_replace($searchText, '', $validateOwnFormulaInput);
-                
-                if( strstr($tempAggregateFields, $searchText) )
-                    $params['metric_aggregate_fields'][] = $metrics->field_id;
-                
+                $params['metric_aggregate_fields'][] = $metrics->field_id;
                 $params['own_formula_by_id'] = @str_replace($searchText, $tempReplaceText, $params['own_formula_by_id']);
                 $params['own_formula_input'] = @str_replace($searchText, $replaceText, $params['own_formula_input']);
             }
@@ -779,19 +772,12 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
         }
         $this->view->htmlArr = $html;
 
-        if( !empty($cfType) && !empty($field->field_id) && in_array($cfType, $tempCfType) ) {
-            return $this -> _forward('success', 'utility', 'core', array(
-                'redirect' => $this->view->url(array('action' => 'field-edit')) . '/field_id/' . $field->field_id,
-                'redirectTime' => 2000,
-                'messages' => array(Zend_Registry::get('Zend_Translate') -> _('The field is created successfully. Let\'s create some Choices in it. '))
-            ));
-        }else {
-            return $this -> _forward('success', 'utility', 'core', array(
-                'layout' => 'default-simple',
-                'parentRefresh' => true,
-                'messages' => array(Zend_Registry::get('Zend_Translate') -> _('The field is created successfully.'))
-            ));
-        }
+        return $this -> _forward('success', 'utility', 'core', array(
+            'layout' => 'default-simple',
+            'parentRefresh' => true,
+            'messages' => array(Zend_Registry::get('Zend_Translate') -> _('The field is created successfully.'))
+        ));
+
     }
 
     public function fieldEditAction()
@@ -974,19 +960,15 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
             }
             
             $validateOwnFormulaInput = $params['own_formula_input'];
-            $tempAggregateFields = $params['own_formula_by_id'] = $params['own_formula_input'];
+            $params['own_formula_by_id'] = $params['own_formula_input'];
             $params['own_actual_formula'] = $params['own_formula_input'];
             $ownFormulaMetricsAlList = @json_decode($params['own_formula_metric_all_list']);
-            
             foreach( $ownFormulaMetricsAlList as $metrics ) {
                 $searchText = '[' . $metrics->label . ']';
                 $tempReplaceText = 'field_id_' . $metrics->field_id;
                 $replaceText = $metrics->label; // . '_' . $tempReplaceText;
                 $validateOwnFormulaInput = @str_replace($searchText, '', $validateOwnFormulaInput);
-                
-                if( strstr($tempAggregateFields, $searchText) )
-                    $params['metric_aggregate_fields'][] = $metrics->field_id;
-                
+                $params['metric_aggregate_fields'][] = $metrics->field_id;
                 $params['own_formula_by_id'] = @str_replace($searchText, $tempReplaceText, $params['own_formula_by_id']);
                 $params['own_formula_input'] = @str_replace($searchText, $replaceText, $params['own_formula_input']);
             }
@@ -1909,27 +1891,6 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
         $this->view->sitepage = $sitepage = Engine_Api::_()->getItem('sitepage_page', $page_id);
         $this->view->form_id = $form_id =$this -> _getParam('form_id');
         $this->view->form = $form = Engine_Api::_() -> getItem('yndynamicform_form', $form_id);
-        
-        // SEARCH FORM
-        $this->view->search_form = $searchForm = new Yndynamicform_Form_EntryModeratorOrgSubmissionSearch();
-
-        // GET ADVANCED SEARCH FROM PARAMS
-//        $searchParams = $this->_getAllParams();
-
-        if( isset($_GET['entry_id']) && !empty($_GET['entry_id']) )
-            $formParams['entry_id'] = $_GET['entry_id'];
-        
-        if( isset($_GET['start_date']['date']) && !empty($_GET['start_date']['date']) )
-            $formParams['start_date'] = date('Y-m-d', strtotime($_GET['start_date']['date']));
-
-        if( isset($_GET['to_date']['date']) && !empty($_GET['to_date']['date']) )
-            $formParams['to_date'] = date('Y-m-d', strtotime($_GET['to_date']['date']));
-        
-        if( isset($_GET['advsearch']) && !empty($_GET['advsearch']) )
-            $formParams['advsearch'] = $_GET['advsearch'];
-        
-        if( !empty($formParams) )
-            $searchForm->populate($formParams);
 
         // CHECK FOR FORM EXISTENCE
         $id = $this -> _getParam('form_id', null);
@@ -1963,13 +1924,13 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
             }
         }
         
-        $this->view->totalSubmission = Engine_Api::_()->impactx()->getSubmittedEntries($form_id, true, $searchParams, true);
+        $this->view->totalSubmission = Engine_Api::_()->impactx()->getTotalSubmittedEntries($form_id);
         
 //        $this->view->totalSubmission = Engine_Api::_()->getDbTable('entries', 'yndynamicform')->getTotalSubmittedEntries($form_id);
         $this->view->totalAssign = Engine_Api::_()->getDbTable('projectforms', 'sitepage')->totalFormByPageId($form_id,$page_id);
 
 //        $form_submitted_paginator = Engine_Api::_()->getDbTable('entries', 'yndynamicform')->getSubmittedEntries($form_id,$form_submitted_page_no);
-        $form_submitted_paginator = Engine_Api::_()->impactx()->getSubmittedEntries($form_id, $form_submitted_page_no, $searchParams);
+        $form_submitted_paginator = Engine_Api::_()->impactx()->getSubmittedEntries($form_id, $form_submitted_page_no);
         $this->view->form_submitted_paginator = $form_submitted_paginator;
 
         $form_assigned_paginator = Engine_Api::_()->getDbTable('projectforms', 'sitepage')->formByPageId($form_id,$page_id,$form_assigned_page_no);
@@ -3481,84 +3442,6 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
 
         $this->view->form_submitted_paginator = $form_submitted_paginator = Engine_Api::_()->impactx()->getAllSubmittedEntries($form_id);
 
-        $headerTitles = array();
-        $headerTitles[] = 'ID';
-        $headerTitles[] = 'Submitted By';
-        $headerTitles[] = 'Submitted Project';
-        $headerTitles[] = 'Submission Time';
-        
-        $body = array();
-        foreach ($form_submitted_paginator as $entry_details):
-            $bodyContent = array();
-            $entry = Engine_Api::_() -> getItem('yndynamicform_entry', $entry_details->getIdentity());
-            $fieldStructure = Engine_Api::_() -> fields() -> getFieldsStructurePartial($entry);
-            $bodyContent[] = $entry_details->getIdentity();
-            
-            if ($entry && $entry->owner_id) {
-                $title = $entry->getOwner()->getTitle();
-            } else if ($entry->user_email) {
-                $title = $entry->user_email;
-            } else {
-                $title = 'Anonymous';
-            }
-
-            $title .= ( !empty($entry->submission_status) && ($entry->submission_status == 'preview') )? ' (test)': '';
-
-            $bodyContent[] = $title;
-            
-            if ($entry && $entry->project_id) {
-                $project = Engine_Api::_()->getItem('sitecrowdfunding_project', $entry->project_id);
-                if($project){
-                    $bodyContent[] = $project->getTitle();
-                }
-                else {
-                         $bodyContent[] = '-';
-                 }
-            }else{
-                $bodyContent[] = '-';
-            }
-            
-            $options = array(); $options['format'] = 'H:ma-F';
-            $tempDate = $this->view->locale()->toDateTime($entry->creation_date, $options);
-            $bodyContent[] = str_replace(",", "", $tempDate);
-            
-            $uniqueTitles = array();
-            foreach ($fieldStructure as $map):
-                // Get field meta object
-                $field = $map->getChild();
-                $value = $field->getValue($entry);
-                $label = $field->label;
-                $label = str_replace("#540","'",$label);
-                if($value->value):
-                    $uniqueTitles[] = str_replace(",", "", $label);
-                    $bodyContent[] = str_replace(",", "", $value->value);
-                endif;
-            endforeach;
-            
-            $headerTitles = array_unique (array_merge ($headerTitles, $uniqueTitles)) ;
-            $body[] = $bodyContent;
-        endforeach;
-
-        $content = implode(",", $headerTitles);
-        if( !empty($body) ) {
-            foreach($body as $info) {
-                $content .= "\n";
-                $content .= implode(",", $info);
-            }
-        }
-
-        echo $content;
-        header('Content-Type: application/csv');
-        header('Content-Disposition: attachment; filename="export-data.csv"');
-        exit();
-        
-//        $this->_helper->layout->setLayout('default-simple');
-//        $this->view->form_id = $form_id = $this->_getParam('form_id');
-//        $viewer = Engine_Api::_()->user()->getViewer();
-//        $this->view->yndform = $yndform = Engine_Api::_() -> getItem('yndynamicform_form', $form_id);
-//
-//        $this->view->form_submitted_paginator = $form_submitted_paginator = Engine_Api::_()->impactx()->getAllSubmittedEntries($form_id);
-
     }
     
     
@@ -3567,18 +3450,9 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
      */
     public function validateFormFieldsAction()
     {
-        $valueSaved = $post_val = @json_decode($_POST['post_val'], true);
+        $post_val = @json_decode($_POST['post_val'], true);
         
-        // validate the array values
-        foreach( $post_val as $key => $val ) {
-            if(strstr($key, '[]')) {
-                $updatedKey = str_replace('[]', '', $key);
-                $post_val[$updatedKey] = $val;
-                
-                unset($post_val[$key]);
-            }
-        }
-        
+       
         $new_entry_form = new Yndynamicform_Form_Standard(
         array(
             'item' => new Yndynamicform_Model_Entry(array()),
@@ -3589,106 +3463,25 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
         
         $new_entry_form->isValid($post_val);
         $hasErrors = $new_entry_form->hasErrors();
-
-        $scriptString = '';
-        if( true || !empty($hasErrors) ) {
-            $tempNumberErrors = array();
-            $scriptString = 'ERROR:<script>';
-            
-            $getElements = $new_entry_form->getElements();
-            
-            foreach($getElements as $element_id => $element) {
-                $keyArr = explode("_", $element_id);
-                $num = $keyArr[count($keyArr) - 1];
-                $db = Engine_Db_Table::getDefaultAdapter();
-                $fieldsLabel =  $db->select()
-                    ->from('engine4_yndynamicform_entry_fields_meta')
-                    ->where('field_id = ?', $num)
-                    ->limit()
-                    ->query()
-                    ->fetchAll();
-
-                if($fieldsLabel[0]['type'] == 'float' || $fieldsLabel[0]['type'] == 'integer'){
-
-                    $config = json_decode($fieldsLabel[0]['config']);
-                    $min_value = null;
-                    $max_value = null;
-                    $default_value = null;
-
-                    if(isset($config->min_value)){
-                        $min_value = $config->min_value;
-                    }
-                    if(isset($config->max_value)){
-                        $max_value = $config->max_value;
-                    }
-                    if(isset($config->default_value)){
-                        $default_value = $config->default_value;
-                    }
-                    
-                    // if both filled
-                    if($min_value && $max_value && $valueSaved[$element_id]){
-                        if( !($min_value <= $valueSaved[$element_id]  && $valueSaved[$element_id] <= $max_value) ){
-                            $tempNumberErrors[$element_id] = array($this->view->translate('%s must be between %s to %s.', $element->getLabel(), $min_value, $max_value));
-                        }
-                    }
-                    // if anyone filled
-                    elseif($min_value && !$max_value && $valueSaved[$element_id]){
-                        if( !($min_value <= $valueSaved[$element_id]) ){
-                            $tempNumberErrors[$element_id] = array($this->view->translate('%s must be greater than %s.', $element->getLabel(), $min_value, $max_value));
-                        }
-                    }
-                    // if anyone filled
-                    elseif (!$min_value && $max_value && $valueSaved[$element_id]){
-                        if( !($valueSaved[$element_id] <= $max_value) ){
-                            $tempNumberErrors[$element_id] = array($this->view->translate('%s must be lesser than %s.', $element->getLabel(),$max_value));
-                        }
-                    }
-                }
-                
-                $scriptString .= 'document.getElementById("global_form_main_error").innerHTML = "<ul class=\"form-errors\"><li>Form Error <ul class=\"error\" style=\"display: inline-block;\"><li>fix the following listed issues to submit the form.</li></ul></li></ul>";';
-                $scriptString .= 'if(document.getElementById("'.$element_id.'-label")){ var remove_error_msg_html = document.getElementById("'.$element_id.'-label").innerHTML;'
-                        . 'var remove_error_message_available = remove_error_msg_html.search("'.$element_id.'-span-separate");'
-                        . 'if( remove_error_message_available > 0 ){ var temp_remove_split_array = remove_error_msg_html.split("'.$element_id.'-span-separate"); remove_error_msg_html = temp_remove_split_array[0]; }'
-                        . 'if(document.getElementById("'.$element_id.'-label")) { document.getElementById("'.$element_id.'-label").innerHTML = remove_error_msg_html; if(document.getElementById("'.$element_id.'"))document.getElementById("'.$element_id.'").style.borderColor = "#999999";}}';
-            }
-            
-            $getErrorMessageArray = $new_entry_form->getMessages();
-            
-            /*
-             * If Hidden fields are mandatory then they should not be enforced unless they become unbidden.
-             */
-            if( isset($getErrorMessageArray) && !empty($getErrorMessageArray) ) {
-                foreach($getErrorMessageArray as $element_id => $messageArray) {
-                    if( isset($new_entry_form->$element_id->conditional_enabled) && !empty($new_entry_form->$element_id->conditional_enabled) )
-                        unset($getErrorMessageArray[$element_id]);
-                }
-            }
-            
-            
-            if( !empty($getErrorMessageArray) && !empty($tempNumberErrors) )
-                $getErrorMessageArray = array_merge($tempNumberErrors, $getErrorMessageArray);
-            
-            
-            if( !empty($getErrorMessageArray) ) {
-                foreach( $getErrorMessageArray as $element_id => $messageArray ) {
-                    $scriptString .= 'var temp_html = document.getElementById("'.$element_id.'-label").innerHTML;'
-                            . 'var is_error_message_available = temp_html.search("'.$element_id.'-span-separate");'
-                            . 'if( is_error_message_available > 0 ){ var temp_split_array = temp_html.split("'.$element_id.'-span-separate"); temp_html = temp_split_array[0]; }'
-                            . 'temp_html = temp_html + \'<span class="'.$element_id.'-span-separate" style="display: none"></span>\';';
-                    foreach( $messageArray as $errorMsg ) {
-                        $scriptString .= 'document.getElementById("'.$element_id.'-label").innerHTML = temp_html +\'<div id="'.$element_id.'-error-message" style="color:#e82413;">' . $errorMsg . '</div>\';';
-                    }
-                    $scriptString .= 'document.getElementById("'.$element_id.'").style.borderColor = "#e82413";';
-                }
-                
-                $scriptString .= '</script>';
-            }else {
-                $scriptString = '';
-            }
-        }
         
+        $scriptString = '';
+        if( !empty($hasErrors) ) {
+            $scriptString = 'ERROR:<script>';
+            $getErrorMessageArray = $new_entry_form->getMessages();
+            foreach( $getErrorMessageArray as $element_id => $messageArray ) {
+                foreach( $messageArray as $errorMsg ) {
+                    $scriptString .= 'document.getElementById("'.$element_id.'-label").innerHTML = document.getElementById("'.$element_id.'-label").innerHTML +\'<div style="color:#e82413;">' . $errorMsg . '</div>\';';
+                }
+                $scriptString .= 'document.getElementById("'.$element_id.'").style.borderColor = "#e82413";';
+            }
+            
+            $scriptString .= '</script>';
+        }
+      
         echo $scriptString;
         exit();
+        
+        
     }
 
 }

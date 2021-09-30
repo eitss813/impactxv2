@@ -20,12 +20,17 @@
     </span>
     <div class="fright" id="fright">
         <div>
+              <a class="view_project_btn" href='<?php echo $this->url(array( 'action' => 'create', 'project_id' => $this->project->project_id ), 'sesblog_general', true) ?>'>
+       <i class="fa fa-plus" aria-hidden="true" style="color: #333333"></i>
+        <span ><?php echo $this->translate('Create Blog') ?></span>
+        </a>&nbsp;
             <span title="Project Status" class="sitecrowdfunding_project_status_successful sitecrowdfunding_project_status"><?php echo $this->project->state ?></span>
             <?php echo $this->htmlLink($this->project->getHref(), $this->translate('View this Project'), array("class" =>
             'view_project_btn' , 'target' => '_blank')) ?>
         </div>
 
     </div>
+   
 </div>
 
 <style>

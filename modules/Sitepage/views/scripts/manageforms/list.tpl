@@ -16,9 +16,26 @@ $this->headScript()
     <div class="generic_layout_container layout_core_content">
 
         <div class="layout_middle">
-            
+
             <?php include_once APPLICATION_PATH . '/application/modules/Sitepage/views/scripts/edit_tabs.tpl'; ?>
 
+            <?php
+               $formId =  $this->form_id;
+             $formmappingTable = Engine_Api::_()->getDbtable('formmappings', 'impactx');
+               $formmappingTable->isRoleForm($formId);
+               
+               if($formmappingTable->isRoleForm($formId)) { ?>
+               <div style="display: flex;">
+                 <a href="javascript:void(0)" onclick="goBack()" class="yndform_backform" ><span style="font-size: 18px;" class="ynicon yn-arr-left">Back &nbsp;</span></a>
+               
+                     <?php echo $this->partial('application/modules/Sitepage/views/scripts/sitepage_dashboard_section_header.tpl', array(
+                'sitepage_id'=>$this->sitepage->page_id,
+                'sectionTitle'=> 'Form Submissions : '.$this->yndform->getTitle(),
+                'sectionDescription' => ''
+                )); ?>
+               </div>
+               <?php } else { ?>
+            
             <div style="display: flex;">
 
                 <?php echo $this->htmlLink(array(
@@ -38,16 +55,12 @@ $this->headScript()
                 )); ?>
 
             </div>
-
+<?php } ?>
             <div class="sitepage_edit_content">
 
-                <button id="form_submitted_btn" class="accordion form_submitted" onclick="openAccordion('form_submitted',1)">Forms Submitted -  (<?php echo $this->totalSubmission ; ?>) <span id="form_submitted_spinner"></span></button>
-                
-                <input type="hidden" id="advsearch_text" name="advsearch_text">
-                <?php echo $this->search_form->render($this); ?>
 
-                <?php include_once APPLICATION_PATH . '/application/modules/Yndynamicform/views/scripts/_advanced_search.tpl'; ?>
-                
+                <!--<button id="form_submitted_btn" class="accordion form_submitted" onclick="openAccordion('form_submitted',1)">Forms Submitted -  (<?php echo $this->totalSubmission ; ?>) <span id="form_submitted_spinner"></span></button>
+-->
                 <div id="form_submitted_panel" class="panel form_submitted_panel">
                     <?php if ($this->form_submitted_paginator): ?>
 
@@ -65,7 +78,6 @@ $this->headScript()
 
                     <div>
                         <table class="yndform_my_entries_table" style="width: 100%">
-                            <?php if( !empty($this->totalSubmission) ): ?>
                             <thead>
                             <tr>
                                 <th field="entry_id">
@@ -76,7 +88,7 @@ $this->headScript()
 
                                 <th><?php echo $this->translate("Submitted By") ?></th>
 
-                                <th><?php echo $this->translate("Submitted Project") ?></th>
+<!--                                <th><?php echo $this->translate("Submitted Project") ?></th>-->
 
                                 <th field="creation_date">
                                     <a href="javascript:void(0);" onclick="changeOrder('creation_date', 'ASC')">
@@ -118,16 +130,16 @@ $this->headScript()
                                     ?>
                                 </td>
 
-                                <td>
-                                    <?php if ($entry && $entry->project_id): ?>
-                                    <?php $project = Engine_Api::_()->getItem('sitecrowdfunding_project', $entry->project_id); ?>
-                                    <?php if ($project): ?>
-                                    <?php echo $this->htmlLink($project->getHref(), $this->translate($project->getTitle())) ?>
-                                    <?php endif; ?>
-                                    <?php else: ?>
+                              <!--  <td>
+                                    <?php// if ($entry && $entry->project_id): ?>
+                                    <?php// $project = Engine_Api::_()->getItem('sitecrowdfunding_project', $entry->project_id); ?>
+                                    <?php// if ($project): ?>
+                                    <?php// echo $this->htmlLink($project->getHref(), $this->translate($project->getTitle())) ?>
+                                    <?php// endif; ?>
+                                    <?php// else: ?>
                                     -
-                                    <?php endif; ?>
-                                </td>
+                                    <?php //endif; ?>
+                                </td> -->
 
                                 <td>
                                     <?php
@@ -198,11 +210,6 @@ $this->headScript()
                             </tr>
                             <?php endforeach; ?>
                             </tbody>
-                            <?php else: ?>
-                                <div class="tip">
-                                    <span>No entries found.</span>
-                                </div>
-                            <?php endif; ?>
                         </table>
                     </div>
                     <br />
@@ -227,8 +234,8 @@ $this->headScript()
 
                 <br/>
 
-                <button id="form_assigned_btn" class="accordion form_assigned" onclick="openAccordion('form_assigned',1)">Forms Assigned - (<?php echo $this->totalAssign ; ?>) <span id="form_assigned_spinner"></span></button>
-
+               <!-- <button id="form_assigned_btn" class="accordion form_assigned" onclick="openAccordion('form_assigned',1)">Forms Assigned - (<?php echo $this->totalAssign ; ?>) <span id="form_assigned_spinner"></span></button>
+-->
                 <div id="form_assigned_panel" class="panel form_assigned_panel">
                     <?php if ($this->form_assigned_paginator): ?>
                     <div>
@@ -363,6 +370,9 @@ $this->headScript()
 <div id="hidden_ajax_data" style="display: none;"></div>
 
 <script>
+      function goBack() {
+  window.history.back();
+}
     window.onload = function () {
         let tab = '<?php echo $this->tab; ?>';
         if(tab == 'form_submitted') {
@@ -651,7 +661,7 @@ $this->headScript()
     }
 
     div#advsearch-wrapper {
-//        display: none;
+        display: none;
     }
     #search {
         border-radius: 25px;
@@ -680,7 +690,7 @@ $this->headScript()
         margin-top: 10px;
     }
     .form-label{
-        // display:none;
+        display:none;
     }
     .span.ynicon.yn-arr-left{
         font-size: 16px;
@@ -830,116 +840,5 @@ $this->headScript()
         display: none;
         overflow: hidden;
     }
-</style>
-
-<script type="text/javascript">
-    $('advsearch_text').set('value', '<?php echo !empty($this->params['conditional_logic']) ? addslashes(json_encode($this->params['conditional_logic'])) : '' ?>');
-
-    var ynDynamicFormCalendar= {
-        currentText: '<?php echo $this->string()->escapeJavascript($this->translate('Today')) ?>',
-        monthNames: ['<?php echo $this->string()->escapeJavascript($this->translate('January')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('February')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('March')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('April')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('May')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('June')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('July')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('August')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('September')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('October')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('November')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('December')) ?>',
-        ],
-        monthNamesShort: ['<?php echo $this->string()->escapeJavascript($this->translate('Jan')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Feb')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Mar')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Apr')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('May')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Jun')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Jul')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Aug')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Sep')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Oct')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Nov')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Dec')) ?>',
-        ],
-        dayNames: ['<?php echo $this->string()->escapeJavascript($this->translate('Sunday')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Monday')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Tuesday')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Wednesday')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Thursday')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Friday')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Saturday')) ?>',
-        ],
-        dayNamesShort: ['<?php echo $this->translate('Su') ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Mo')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Tu')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('We')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Th')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Fr')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Sa')) ?>',
-        ],
-        dayNamesMin: ['<?php echo $this->string()->escapeJavascript($this->translate('Su')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Mo')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Tu')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('We')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Th')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Fr')) ?>',
-            '<?php echo $this->string()->escapeJavascript($this->translate('Sa')) ?>',
-        ],
-        firstDay: 0,
-        isRTL: <?php echo $this->layout()->orientation == 'right-to-left'? 'true':'false' ?>,
-        showMonthAfterYear: false,
-        yearSuffix: ''
-    };
-
-    jQuery(document).ready(function(){
-        jQuery.datepicker.setDefaults(ynDynamicFormCalendar);
-        jQuery('#start_date').datepicker({
-            firstDay: 1,
-            dateFormat: 'yy-mm-dd',
-            showOn: "button",
-            buttonImage:'<?php echo $this->baseUrl() ?>/application/modules/Yndynamicform/externals/images/calendar.png',
-            buttonImageOnly: true,
-            buttonText: '',
-        });
-
-        jQuery('#to_date').datepicker({
-            firstDay: 1,
-            dateFormat: 'yy-mm-dd',
-            showOn: "button",
-            buttonImage:'<?php echo $this->baseUrl() ?>/application/modules/Yndynamicform/externals/images/calendar.png',
-            buttonImageOnly: true,
-            buttonText: '<?php echo $this -> translate("Select date")?>'
-        });
-    });
-
-    function changeOrder(listby, default_direction){
-        var currentOrder = '<?php echo $this->params['fieldOrder'] ?>';
-        var currentOrderDirection = '<?php echo $this->params['direction'] ?>';
-
-        // Just change direction
-        if( listby == currentOrder ) {
-            $('direction').value = (currentOrderDirection == 'ASC' ? 'DESC' : 'ASC' );
-        } else {
-            $('fieldOrder').value = listby;
-            $('direction').value = default_direction;
-        }
-        $('yndform_moderator_search').submit();
-    }
-</script>
-        
-<style>
- #start_date-hour, #start_date-minute, #start_date-ampm, #yndform_conditional_container {
-     display: none;
- }
- 
- #to_date-hour, #to_date-minute, #to_date-ampm {
-     display: none;
- }
- 
- #start_date-element, #to_date-element, #start_date-label, #to_date-label {
-     text-align: left !important;
- }
 </style>
 

@@ -309,7 +309,6 @@ class Sitecrowdfunding_DashboardController extends Core_Controller_Action_Standa
             $project->help_desc = $_POST['help_desc'];
             $project->desire_desc = $_POST['desire_desc'];
             $project->location = $_POST['location'];
-            $project->project_map = (isset($_POST['project_map']))? $_POST['project_map']: 2;
 
             $db = Engine_Db_Table::getDefaultAdapter();
 
@@ -367,7 +366,6 @@ class Sitecrowdfunding_DashboardController extends Core_Controller_Action_Standa
         $values['help_desc'] = $project->help_desc;
         $values['desire_desc'] = $project->desire_desc;
         $values['location'] = $project->location;
-        $values['project_map'] = $project->project_map;
 
         $form->populate($values);
     }

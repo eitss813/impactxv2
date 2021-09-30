@@ -390,6 +390,20 @@ $this->headScript()
         <?php endforeach; ?>
         <?php endif; ?>
 
+<!-- show the my blogs menu-->
+                <li class="seaocore_db_head"  onclick="myBlogsExpand()">
+                    <h3>
+                        <?php echo $this->translate("My Blogs"); ?>
+                        <i id="myblog" class="fa fa-arrow-circle-up" style="float: right;"></i>
+                    </h3>
+                </li>
+              
+                <li id="myblog-sub" style="display: none;" <?php echo($attribs['active'] ? ' class="selected"' : ''); ?>>
+                   <a class="menu_sitecrowdfunding_dashboard_metrics sitecrowdfunding_dashboard_metricdetails" target="_blank" href='<?php echo $this->url(array( 'action' => 'manage', 'org_id' => $this->page_id ), 'sesblog_general', true) ?>'>
+        <span ><?php echo $this->translate('My Blogs') ?></span>
+        </a>
+                </li>
+
 
         <?php if (count($dashboard_navigation_others)): ?>
         <li class="seaocore_db_head" onclick="othersExpand()">
@@ -708,6 +722,22 @@ var element = $(event.target);
             x[i].style.display = status;
         }
     }
+    
+    
+    
+      function myBlogsExpand(){
+                var x = document.querySelectorAll("#myblog-sub");
+                var status = x[0].style.display == "block" ? "none" : "block" ;
+                if(status == "none")
+                    document.getElementById('myblog').className= "fa fa-arrow-circle-up";
+                else
+                    document.getElementById('myblog').className= "fa fa-arrow-circle-down";
+
+                for (i = 0; i < x.length; i++) {
+                    x[i].style.display = status;
+                }
+            }
+    
     function othersExpand(){
         var x = document.querySelectorAll("#others-sub");
         var status = x[0].style.display == "block" ? "none" : "block" ;
