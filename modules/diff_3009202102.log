@@ -1,0 +1,367 @@
+diff --git a/application/modules/Impactx/Api/Core.php b/application/modules/Impactx/Api/Core.php
+index 39fbc03f..431f0bd0 100644
+--- a/application/modules/Impactx/Api/Core.php
++++ b/application/modules/Impactx/Api/Core.php
+@@ -92,8 +92,10 @@ class Impactx_Api_Core extends Core_Api_Abstract
+ 
+         $paginator = Zend_Paginator::factory($select);
+         
+-        if( !empty($total_count) )
+-            return $paginator->getTotalItemCount();
++        if( !empty($total_count) ) {
++            $getTotalCount = (int) $paginator->getTotalItemCount();
++            return $getTotalCount;
++        }
+         
+         if (!empty($page_no)) {
+             $paginator->setCurrentPageNumber($page_no);
+diff --git a/application/modules/Sitepage/controllers/ManageformsController.php b/application/modules/Sitepage/controllers/ManageformsController.php
+index db17bee2..829f803b 100644
+--- a/application/modules/Sitepage/controllers/ManageformsController.php
++++ b/application/modules/Sitepage/controllers/ManageformsController.php
+@@ -1914,7 +1914,7 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
+         $this->view->search_form = $searchForm = new Yndynamicform_Form_EntryModeratorOrgSubmissionSearch();
+ 
+         // GET ADVANCED SEARCH FROM PARAMS
+-        $searchParams = $_GET;// $this->_getAllParams();
++//        $searchParams = $this->_getAllParams();
+ 
+         if( isset($_GET['entry_id']) && !empty($_GET['entry_id']) )
+             $formParams['entry_id'] = $_GET['entry_id'];
+@@ -1931,10 +1931,6 @@ class Sitepage_ManageformsController extends Core_Controller_Action_Standard
+         if( !empty($formParams) )
+             $searchForm->populate($formParams);
+ 
+-        if($this->getRequest()->isPost() && !$searchForm->isValid($searchParams)) {
+-            return;
+-        }
+-
+         // CHECK FOR FORM EXISTENCE
+         $id = $this -> _getParam('form_id', null);
+         if( !$id || !$form = Engine_Api::_() -> getItem('yndynamicform_form', $id))
+diff --git a/application/modules/Sitepage/views/scripts/manageforms/list.tpl b/application/modules/Sitepage/views/scripts/manageforms/list.tpl
+index 0237312a..f7110896 100644
+--- a/application/modules/Sitepage/views/scripts/manageforms/list.tpl
++++ b/application/modules/Sitepage/views/scripts/manageforms/list.tpl
+@@ -16,7 +16,7 @@ $this->headScript()
+     <div class="generic_layout_container layout_core_content">
+ 
+         <div class="layout_middle">
+-
++            
+             <?php include_once APPLICATION_PATH . '/application/modules/Sitepage/views/scripts/edit_tabs.tpl'; ?>
+ 
+             <div style="display: flex;">
+@@ -41,9 +41,13 @@ $this->headScript()
+ 
+             <div class="sitepage_edit_content">
+ 
+-
+                 <button id="form_submitted_btn" class="accordion form_submitted" onclick="openAccordion('form_submitted',1)">Forms Submitted -  (<?php echo $this->totalSubmission ; ?>) <span id="form_submitted_spinner"></span></button>
++                
++                <input type="hidden" id="advsearch_text" name="advsearch_text">
++                <?php echo $this->search_form->render($this); ?>
+ 
++                <?php include_once APPLICATION_PATH . '/application/modules/Yndynamicform/views/scripts/_advanced_search.tpl'; ?>
++                
+                 <div id="form_submitted_panel" class="panel form_submitted_panel">
+                     <?php if ($this->form_submitted_paginator): ?>
+ 
+@@ -61,6 +65,7 @@ $this->headScript()
+ 
+                     <div>
+                         <table class="yndform_my_entries_table" style="width: 100%">
++                            <?php if( !empty($this->totalSubmission) ): ?>
+                             <thead>
+                             <tr>
+                                 <th field="entry_id">
+@@ -193,6 +198,11 @@ $this->headScript()
+                             </tr>
+                             <?php endforeach; ?>
+                             </tbody>
++                            <?php else: ?>
++                                <div class="tip">
++                                    <span>No entries found.</span>
++                                </div>
++                            <?php endif; ?>
+                         </table>
+                     </div>
+                     <br />
+@@ -641,7 +651,7 @@ $this->headScript()
+     }
+ 
+     div#advsearch-wrapper {
+-        display: none;
++//        display: none;
+     }
+     #search {
+         border-radius: 25px;
+@@ -670,7 +680,7 @@ $this->headScript()
+         margin-top: 10px;
+     }
+     .form-label{
+-        display:none;
++        // display:none;
+     }
+     .span.ynicon.yn-arr-left{
+         font-size: 16px;
+@@ -822,3 +832,114 @@ $this->headScript()
+     }
+ </style>
+ 
++<script type="text/javascript">
++    $('advsearch_text').set('value', '<?php echo !empty($this->params['conditional_logic']) ? addslashes(json_encode($this->params['conditional_logic'])) : '' ?>');
++
++    var ynDynamicFormCalendar= {
++        currentText: '<?php echo $this->string()->escapeJavascript($this->translate('Today')) ?>',
++        monthNames: ['<?php echo $this->string()->escapeJavascript($this->translate('January')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('February')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('March')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('April')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('May')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('June')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('July')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('August')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('September')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('October')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('November')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('December')) ?>',
++        ],
++        monthNamesShort: ['<?php echo $this->string()->escapeJavascript($this->translate('Jan')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Feb')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Mar')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Apr')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('May')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Jun')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Jul')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Aug')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Sep')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Oct')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Nov')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Dec')) ?>',
++        ],
++        dayNames: ['<?php echo $this->string()->escapeJavascript($this->translate('Sunday')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Monday')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Tuesday')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Wednesday')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Thursday')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Friday')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Saturday')) ?>',
++        ],
++        dayNamesShort: ['<?php echo $this->translate('Su') ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Mo')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Tu')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('We')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Th')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Fr')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Sa')) ?>',
++        ],
++        dayNamesMin: ['<?php echo $this->string()->escapeJavascript($this->translate('Su')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Mo')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Tu')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('We')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Th')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Fr')) ?>',
++            '<?php echo $this->string()->escapeJavascript($this->translate('Sa')) ?>',
++        ],
++        firstDay: 0,
++        isRTL: <?php echo $this->layout()->orientation == 'right-to-left'? 'true':'false' ?>,
++        showMonthAfterYear: false,
++        yearSuffix: ''
++    };
++
++    jQuery(document).ready(function(){
++        jQuery.datepicker.setDefaults(ynDynamicFormCalendar);
++        jQuery('#start_date').datepicker({
++            firstDay: 1,
++            dateFormat: 'yy-mm-dd',
++            showOn: "button",
++            buttonImage:'<?php echo $this->baseUrl() ?>/application/modules/Yndynamicform/externals/images/calendar.png',
++            buttonImageOnly: true,
++            buttonText: '',
++        });
++
++        jQuery('#to_date').datepicker({
++            firstDay: 1,
++            dateFormat: 'yy-mm-dd',
++            showOn: "button",
++            buttonImage:'<?php echo $this->baseUrl() ?>/application/modules/Yndynamicform/externals/images/calendar.png',
++            buttonImageOnly: true,
++            buttonText: '<?php echo $this -> translate("Select date")?>'
++        });
++    });
++
++    function changeOrder(listby, default_direction){
++        var currentOrder = '<?php echo $this->params['fieldOrder'] ?>';
++        var currentOrderDirection = '<?php echo $this->params['direction'] ?>';
++
++        // Just change direction
++        if( listby == currentOrder ) {
++            $('direction').value = (currentOrderDirection == 'ASC' ? 'DESC' : 'ASC' );
++        } else {
++            $('fieldOrder').value = listby;
++            $('direction').value = default_direction;
++        }
++        $('yndform_moderator_search').submit();
++    }
++</script>
++        
++<style>
++ #start_date-hour, #start_date-minute, #start_date-ampm, #yndform_conditional_container {
++     display: none;
++ }
++ 
++ #to_date-hour, #to_date-minute, #to_date-ampm {
++     display: none;
++ }
++ 
++ #start_date-element, #to_date-element, #start_date-label, #to_date-label {
++     text-align: left !important;
++ }
++</style>
++
+diff --git a/application/modules/Yndynamicform/Model/DbTable/Entries.php b/application/modules/Yndynamicform/Model/DbTable/Entries.php
+index 618dc337..1fe053db 100644
+--- a/application/modules/Yndynamicform/Model/DbTable/Entries.php
++++ b/application/modules/Yndynamicform/Model/DbTable/Entries.php
+@@ -122,6 +122,8 @@ class Yndynamicform_Model_DbTable_Entries extends Engine_Db_Table
+                 $this->addCondition($select, $valueTable, $rName, $field_id, $opArr[$key], $valueArr[$key], $typeArr[$key]);
+             }
+         }
++        
++        
+ 
+         if (!empty($params['fieldOrder']) && !empty($params['direction'])) {
+             $select -> order("{$params['fieldOrder']} {$params['direction']}");
+@@ -161,7 +163,7 @@ class Yndynamicform_Model_DbTable_Entries extends Engine_Db_Table
+         $vName = $valueTable->info('name');
+         // RANDOM STRING TO PAIR EACH COMPARE
+         $random = rand();
+-        $select->joinLeft("$vName AS t$random$field_id", "$rName.entry_id = t$random$field_id.item_id");
++        $select->joinLeft("$vName AS t$random$field_id", "t$random$field_id.item_id=$rName.entry_id");
+ 
+         if ($type == 'file_upload') {
+             $notEmptyFields = array();
+diff --git a/application/modules/Yndynamicform/View/Helper/YndformFieldValueLoop.php b/application/modules/Yndynamicform/View/Helper/YndformFieldValueLoop.php
+index 3324d357..bb7580f2 100644
+--- a/application/modules/Yndynamicform/View/Helper/YndformFieldValueLoop.php
++++ b/application/modules/Yndynamicform/View/Helper/YndformFieldValueLoop.php
+@@ -10,6 +10,7 @@ class Yndynamicform_View_Helper_YndformFieldValueLoop extends Fields_View_Helper
+ {
+     public function yndformFieldValueLoop($subject, $partialStructure, $isPrint = true)
+     {
++        
+         if (empty($partialStructure)) {
+             return '';
+         }
+@@ -17,6 +18,11 @@ class Yndynamicform_View_Helper_YndformFieldValueLoop extends Fields_View_Helper
+         if (!($subject instanceof Core_Model_Item_Abstract) || !$subject->getIdentity()) {
+             return '';
+         }
++        
++        $metric_formulas_array = array();
++        if( isset($subject->metric_formulas) && !empty($subject->metric_formulas) )
++            $metric_formulas_array = json_decode($subject->metric_formulas, true);
++        
+         // Init user_analytic_fields
+         $yndform = $subject->getForm();
+         $viewer = Engine_Api::_() -> user() -> getViewer();
+@@ -59,11 +65,14 @@ class Yndynamicform_View_Helper_YndformFieldValueLoop extends Fields_View_Helper
+                     
+                     $default_color = '';
+                     if( $field->type == 'metrics' ) {
++                        // $metric_formulas_array
+                         $default_color = 'style="color: #f35f5f; font-weight: bold;"';
+-                        if( ($field->config['metric_aggregate_type'] == 'metric_sum') )
++                        if( ($field->config['metric_aggregate_type'] == 'metric_sum') ) {
+                             $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)</span>';
+-                        else
+-                            $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)<br />Formula: ' . $field->config['own_actual_formula'] . '</span>';
++                        } else {
++                            $formula = !empty($metric_formulas_array[$field->config['selected_metric_id']])? $metric_formulas_array[$field->config['selected_metric_id']]: $field->config['own_actual_formula'];
++                            $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)<br />Formula: ' . $formula . '</span>';
++                        }
+ 
+                         if( !empty($field->config['selected_metric_id']) ) {
+                             $metricUrl = $this->view->url(array('action' => 'index','metric_id' => $field->config['selected_metric_id']), "sitepage_metrics");
+@@ -103,10 +112,12 @@ EOF;
+                     $default_color = '';
+                     if( $field->type == 'metrics' ) {
+                         $default_color = 'style="color: #f35f5f; font-weight: bold;"';
+-                        if( ($field->config['metric_aggregate_type'] == 'metric_sum') )
++                        if( ($field->config['metric_aggregate_type'] == 'metric_sum') ) {
+                             $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)</span>';
+-                        else
+-                            $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)<br />Formula: ' . $field->config['own_actual_formula'] . '</span>';
++                        } else {
++                            $formula = !empty($metric_formulas_array[$field->config['selected_metric_id']])? $metric_formulas_array[$field->config['selected_metric_id']]: $field->config['own_actual_formula'];
++                            $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)<br />Formula: ' . $formula . '</span>';
++                        }
+ 
+                         if( !empty($field->config['selected_metric_id']) ) {
+                             $metricUrl = $this->view->url(array('action' => 'index','metric_id' => $field->config['selected_metric_id']), "sitepage_metrics");
+diff --git a/application/modules/Yndynamicform/controllers/EntriesController.php b/application/modules/Yndynamicform/controllers/EntriesController.php
+index 127f92d1..f9eca201 100644
+--- a/application/modules/Yndynamicform/controllers/EntriesController.php
++++ b/application/modules/Yndynamicform/controllers/EntriesController.php
+@@ -2138,7 +2138,21 @@ class Yndynamicform_EntriesController extends Core_Controller_Action_Standard
+                 return;
+             }
+ 
+-
++            /*
++             * Set the post values to bypass the save functionality
++             */
++            if( !empty($is_saved) ) {
++                $postValues = $this->getRequest()->getPost();
++                $tempValue = time();
++                foreach($postValues as $key => $value) {
++//                    
++//                    $abc = $new_entry_form->getElement($key);
++//                    
++                    if( strstr($key, "_") && empty($value) ) {
++                        $_POST[$key] = $tempValue;
++                    }
++                }
++            }
+ 
+             /*
+              * Cheat: Because some field are not valid conditional logic but admin config they are required.
+@@ -2687,10 +2701,15 @@ class Yndynamicform_EntriesController extends Core_Controller_Action_Standard
+ 
+                 $new_entry_form->setItem($new_entry);
+                 $new_entry_form->saveValues();
++                
++                // DEEPAK
++                $db->query("DELETE FROM engine4_yndynamicform_entry_fields_values WHERE item_id=".$new_entry->entry_id." AND value = '$tempValue'");
++
+ 
+                 // save metrics value in activity
+                 if($this->getRequest()->isPost() && $new_entry_form->isValid($this->getRequest()->getPost())) {
+                     $val = (array)$new_entry_form->getValues();
++                    $own_actual_formula = array();
+                     foreach ($val as $key=>$value){
+ 
+                         $valueSaved = $new_entry_form->getValue($key);
+@@ -2709,6 +2728,9 @@ class Yndynamicform_EntriesController extends Core_Controller_Action_Standard
+ 
+                             $config = json_decode($fieldsLabel[0]['config']);
+                             $metric_id = $config->selected_metric_id;
++                            
++                            if( isset($config->own_actual_formula) && !empty($config->own_actual_formula) )
++                                $own_actual_formula[$metric_id] = $config->own_actual_formula;
+ 
+                             if(!empty($metric_id)){
+ 
+@@ -2722,6 +2744,11 @@ class Yndynamicform_EntriesController extends Core_Controller_Action_Standard
+                             }
+                         }
+                     }
++                    
++                    if( isset($own_actual_formula) && !empty($own_actual_formula) ) {
++                        $new_entry->metric_formulas = json_encode($own_actual_formula);
++                        $new_entry->save();
++                    }
+                 }
+ 
+                 // Auth

@@ -1,0 +1,1 @@
+ALTER TABLE `engine4_sitepage_pages` ADD `organization_map` TINYINT( 4 ) NOT NULL DEFAULT '0';

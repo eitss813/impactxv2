@@ -1,0 +1,1 @@
+<iframe src="<?php echo $this->osmIframeUrl; ?>" style="width: 100%; height: 450px;" scrolling="no"></iframe>

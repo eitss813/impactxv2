@@ -1,0 +1,1 @@
+ALTER TABLE `engine4_yndynamicform_entries` ADD `metric_formulas` TEXT NOT NULL DEFAULT '';
