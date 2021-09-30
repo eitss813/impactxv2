@@ -90,7 +90,6 @@
 
     <!-- STYLE FOR SUBMIT BUTTON FLLOW FORM SETTINGS -->
     <?php if ($this->edit_entry_form): ?>
-        <div id="global_form_main_error"></div>
         <div class="global_form">
             <!--  Render form detail  -->
             <?php

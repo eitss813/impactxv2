@@ -110,6 +110,13 @@ $minHeight =$minHeight +20;
         </a>
     </div>
 
+     <div class="seaocore_follow_button_wrap fleft initiative_edit_container">
+        <a class="create_btn seaocore_follow_button button create_project_btn user_auth_link" href='<?php echo $this->url(array( 'action' => 'create', 'org_id' => $this->sitepage->page_id ), 'sesblog_general', true) ?>'>
+       <i class="fa fa-plus" aria-hidden="true" style="color: #333333"></i>
+        <span ><?php echo $this->translate('Create Blog') ?></span>
+        </a>
+    </div>
+
     <?php endif; ?>
 
     <!-- Get Link-->
@@ -169,22 +176,30 @@ $minHeight =$minHeight +20;
         <?php echo $this->content()->renderWidget("seaocore.seaocore-follow"); ?>
     </div>
     <?php endif;*/ ?>
-    <!--<?php if (Engine_Api::_()->getDbtable('modules', 'core')->isModuleEnabled('sitepagemember')) : ?>
+    <?php if (Engine_Api::_()->getDbtable('modules', 'core')->isModuleEnabled('sitepagemember')) : ?>
               <?php $joinMembers = Engine_Api::_()->getDbTable('membership', 'sitepage')->hasMembers($this->viewer_id, $this->sitepage->page_id);
+             
               if (empty($joinMembers) && in_array('joinButton', $this->showContent) && $this->viewer_id != $this->sitepage->owner_id && !empty($this->allowPage)): ?>
                   <div>
-                  <?php if (!empty($this->viewer_id)) : ?>
-                      <?php if (!empty($this->sitepage->member_approval)): ?>
-                          <a class="sitepage_button" href="javascript:void(0);" onclick="showSmoothBox('<?php echo $this->escape($this->url(array( 'action' => 'join', 'page_id' => $this->sitepage->page_id), 'sitepage_profilepagemember', true)); ?>'); return false;" ><i class="fa plus_icon"></i><span><?php echo $this->translate("Join Page"); ?></span></a>
+                  <?php
+                
+                  $user = Engine_Api::_()->user()->getViewer();
+                
+                  if (!empty($this->viewer_id) &&  $user->level_id !== 1) : ?>
+                      <?php 
+                    
+                      if (!empty($this->sitepage->member_approval)): ?>
+                          <a class="sitepage_button" href="javascript:void(0);" onclick="showSmoothBox('<?php echo $this->escape($this->url(array('module' => 'impactx','controller' =>'member', 'action' => 'join', 'page_id' => $this->sitepage->page_id), 'default', true)); ?>'); return false;" ><i class="fa plus_icon"></i><span><?php echo $this->translate("Join Page"); ?></span></a>
                       <?php else: ?>
-                          <a class="sitepage_button" href="javascript:void(0);" onclick="showSmoothBox('<?php echo $this->escape($this->url(array( 'action' => 'request', 'page_id' => $this->sitepage->page_id), 'sitepage_profilepagemember', true)); ?>'); return false;" ><i class="fa plus_icon"></i><span><?php echo $this->translate("Join Page"); ?></span></a>
-                      <?php endif; ?>
+                    <!--<a class="sitepage_button" href="javascript:void(0);" onclick="showSmoothBox('<?php echo $this->escape($this->url(array( 'action' => 'request', 'page_id' => $this->sitepage->page_id), 'sitepage_profilepagemember', true)); ?>'); return false;" ><i class="fa plus_icon"></i><span><?php echo $this->translate("Join Page"); ?></span></a>
+                   -->
+                    <a class="sitepage_button" href="javascript:void(0);" onclick="showSmoothBox('<?php echo $this->escape($this->url(array('module' => 'impactx','controller' =>'member', 'action' => 'join','is_request'=>1, 'page_id' => $this->sitepage->page_id), 'default', true)); ?>'); return false;" ><i class="fa plus_icon"></i><span><?php echo $this->translate("Join Page"); ?></span></a> 
+                    <?php endif; ?>
                   <?php endif; ?>
                   </div>
-              <?php endif; ?>-->
+              <?php endif; ?>
 
-
-    <!-- <?php $hasMembers = Engine_Api::_()->getDbTable('membership', 'sitepage')->hasMembers($this->viewer_id, $this->sitepage->page_id, $params = "Leave");
+ <?php $hasMembers = Engine_Api::_()->getDbTable('membership', 'sitepage')->hasMembers($this->viewer_id, $this->sitepage->page_id, $params = "Leave");
      if (!empty($hasMembers) && in_array('leaveButton', $this->showContent) && $this->viewer_id != $this->sitepage->owner_id && !empty($this->allowPage)): ?>
                  <div>
          <?php if ($this->viewer_id) : ?>
@@ -205,9 +220,9 @@ $minHeight =$minHeight +20;
                  </div>
                  <?php endif; ?>
              <?php endif; ?>
-         <?php endif; ?>-->
+         <?php endif; ?>
 
-    <!-- <div class="seaocore_profile_option_btn main_project_info_setting">
+    <div class="seaocore_profile_option_btn main_project_info_setting">
          <a href="javascript:void(0);" onclick="showPulDownOptions();"><i class="icon_cog"></i></a>
          <ul class="seaocore_profile_options_pulldown" id="menu_settings_options_pulldown" style="display:none;">
              <li>
@@ -217,7 +232,7 @@ $minHeight =$minHeight +20;
                  <?php echo $this->htmlLink(array('route' => 'sitepage_dashboard', 'action' => 'get-link', 'page_id' => $this->sitepage->page_id), $this->translate("Get Link"), array('class' => 'buttonlink smoothbox seao_icon_sharelink_square')); ?>
              </li>
          </ul>
-     </div> -->
+     </div> 
 
     <?php /*
         <?php if(!empty($sitepage->declined) ): ?>

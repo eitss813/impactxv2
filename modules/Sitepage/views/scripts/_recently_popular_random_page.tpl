@@ -265,6 +265,15 @@ $RESOURCE_TYPE = 'sitepage_page';
                     <?php foreach ($this->sitepagesitepage as $item): ?>
                         <?php $sitepage = Engine_Api::_()->getItem('sitepage_page', $item->page_id); ?>
                         <?php
+                         // Code added by Questwalk Start
+                         $result = Engine_Api::_()->getDbTable('formmappings', 'impactx')->getMappingInfoByRoleId($item->role_id);
+                         $form_id =  isset($result['form_id']) ? $result['form_id'] : 0 ;
+                         $entry_id = 0;
+                         if($form_id)
+                            $entry_id = Engine_Api::_()->getDbTable('entries', 'yndynamicform')->getEntryIDByOwneridAndFormId($form_id,$viewer_id);
+
+                         // End
+
                         if ($counter > $limit):
                             break;
                         endif;
@@ -419,6 +428,14 @@ $RESOURCE_TYPE = 'sitepage_page';
 
                                         </div>
                                     <?php endif; ?>
+
+                                    <?php if($this->params['link'] == 'joined_pages' && $entry_id): ?>
+
+                                    <div class="site_page_bottom_info_submission">
+                                      <a href="dynamic-form/entry/view/<?php echo $entry_id; ?>/is_popup/1" class="button smoothbox"> View Onboarding Form </a>
+                                    </div>
+
+                                    <?php endif ?>
 
                                 </div>
 
@@ -617,6 +634,10 @@ $RESOURCE_TYPE = 'sitepage_page';
         margin-left: 8px;
         vertical-align: middle;
         display: inline;
+    }
+
+    .site_page_bottom_info_submission{
+        margin-top: 29px;
     }
 
 </style>

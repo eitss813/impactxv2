@@ -55,20 +55,37 @@
 							<div class="sitepage_manage_member_role_list_option fright"><b><?php echo $this->translate("Options") ?></b></div>
 						</div>
 						<?php endif; ?>
-						<?php foreach ($this->manageRolesHistories as $item):?>
+						<?php foreach ($this->manageRolesHistories as $item):
+						  
+						     $formmappingTable = Engine_Api::_()->getDbtable('formmappings', 'impactx');
+
+							 $from_mapping_info = $formmappingTable->getMappingInfoByRoleId($item->role_id);
+$addfield =  $this->baseUrl() .'/organizations/manageforms/fields?option_id='.$from_mapping_info['option_id'].'&id='.$from_mapping_info['form_id'].'&page_id='. $from_mapping_info['page_id'];
+$viewsubmission = $this->baseUrl() .'/organizations/manageforms/list/form_id/'.$from_mapping_info['form_id'].'/page_id/'. $from_mapping_info['page_id'];
+if(isset($from_mapping_info['form_id']))
+    $totalsubmission = Engine_Api::_()->getDbTable('entries', 'yndynamicform')->getTotalSubmittedEntries($from_mapping_info['form_id']);
+
+
+						?>
 							<div id='<?php echo $item->role_id ?>_page' class="sitepage_manage_member_role_list clr">
 								<div class="fleft"><?php echo $item->role_name; ?></div>
 								<?php if (empty($item->is_admincreated)) : ?>
 									<div class="sitepage_manage_member_role_list_option fright">
 										<?php $url = $this->url(array('action' => 'delete-member-category'), 'sitepage_dashboard', true);?>
-											<a href="javascript:void(0);" onclick="deleteMemberCategory('<?php echo $item->role_id?>', '<?php echo $url;?>', '<?php echo $this->page_id ?>')"; ><?php echo $this->translate('Delete Member Role');?></a>
+											<a href="javascript:void(0);" onclick="deleteMemberCategory('<?php echo $item->role_id?>', '<?php echo $url;?>', '<?php echo $this->page_id ?>')"; ><?php echo $this->translate('Delete');?></a>
 											| 	<?php if (!empty($this->is_ajax)) : ?>
-													<?php echo $this->htmlLink(array('route' => 'sitepage_dashboard', 'action' => 'edit-role', 'role_id' => $item->role_id, 'page_id' => $this->page_id), $this->translate('Edit Member Role'), array(' class' => 'smoothbox', 'onclick' => 'owner(this);return false')); ?>
+													<?php echo $this->htmlLink(array('route' => 'sitepage_dashboard', 'action' => 'edit-role', 'role_id' => $item->role_id, 'page_id' => $this->page_id), $this->translate('Edit'), array(' class' => 'smoothbox', 'onclick' => 'owner(this);return false')); ?>
 													<?php else : ?>
-													<?php echo $this->htmlLink(array('route' => 'sitepage_dashboard', 'action' => 'edit-role', 'role_id' => $item->role_id, 'page_id' => $this->page_id), $this->translate('Edit Member Role'), array(' class' => 'smoothbox')); ?>
+													<?php echo $this->htmlLink(array('route' => 'sitepage_dashboard', 'action' => 'edit-role', 'role_id' => $item->role_id, 'page_id' => $this->page_id), $this->translate('Edit'), array(' class' => 'smoothbox')); ?>
 												<?php endif; ?>
+                                             <?php if(!empty( $from_mapping_info)) :?>
+											| <a href="<?php echo $addfield?>" > Onboard Form </a>	
+											| <a href="<?php echo $viewsubmission;?>" > View Submission ( <?php echo  $totalsubmission ;?> ) </a>	
+											<?php endif?>
 									</div>
+									
 									<?php else: ?>
+										
 									<div class="sitepage_manage_member_role_list_option fright">
 									<?php echo $this->translate('Delete Member Role'); ?>
 									</div>

@@ -10,7 +10,6 @@ class Yndynamicform_View_Helper_YndformFieldValueLoop extends Fields_View_Helper
 {
     public function yndformFieldValueLoop($subject, $partialStructure, $isPrint = true)
     {
-        
         if (empty($partialStructure)) {
             return '';
         }
@@ -18,11 +17,6 @@ class Yndynamicform_View_Helper_YndformFieldValueLoop extends Fields_View_Helper
         if (!($subject instanceof Core_Model_Item_Abstract) || !$subject->getIdentity()) {
             return '';
         }
-        
-        $metric_formulas_array = array();
-        if( isset($subject->metric_formulas) && !empty($subject->metric_formulas) )
-            $metric_formulas_array = json_decode($subject->metric_formulas, true);
-        
         // Init user_analytic_fields
         $yndform = $subject->getForm();
         $viewer = Engine_Api::_() -> user() -> getViewer();
@@ -65,14 +59,11 @@ class Yndynamicform_View_Helper_YndformFieldValueLoop extends Fields_View_Helper
                     
                     $default_color = '';
                     if( $field->type == 'metrics' ) {
-                        // $metric_formulas_array
                         $default_color = 'style="color: #f35f5f; font-weight: bold;"';
-                        if( ($field->config['metric_aggregate_type'] == 'metric_sum') ) {
+                        if( ($field->config['metric_aggregate_type'] == 'metric_sum') )
                             $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)</span>';
-                        } else {
-                            $formula = !empty($metric_formulas_array[$field->config['selected_metric_id']])? $metric_formulas_array[$field->config['selected_metric_id']]: $field->config['own_actual_formula'];
-                            $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)<br />Formula: ' . $formula . '</span>';
-                        }
+                        else
+                            $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)<br />Formula: ' . $field->config['own_actual_formula'] . '</span>';
 
                         if( !empty($field->config['selected_metric_id']) ) {
                             $metricUrl = $this->view->url(array('action' => 'index','metric_id' => $field->config['selected_metric_id']), "sitepage_metrics");
@@ -112,12 +103,10 @@ EOF;
                     $default_color = '';
                     if( $field->type == 'metrics' ) {
                         $default_color = 'style="color: #f35f5f; font-weight: bold;"';
-                        if( ($field->config['metric_aggregate_type'] == 'metric_sum') ) {
+                        if( ($field->config['metric_aggregate_type'] == 'metric_sum') )
                             $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)</span>';
-                        } else {
-                            $formula = !empty($metric_formulas_array[$field->config['selected_metric_id']])? $metric_formulas_array[$field->config['selected_metric_id']]: $field->config['own_actual_formula'];
-                            $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)<br />Formula: ' . $formula . '</span>';
-                        }
+                        else
+                            $label = $label . '<br /><span style="font-size: 11px;">(Calculated automatically)<br />Formula: ' . $field->config['own_actual_formula'] . '</span>';
 
                         if( !empty($field->config['selected_metric_id']) ) {
                             $metricUrl = $this->view->url(array('action' => 'index','metric_id' => $field->config['selected_metric_id']), "sitepage_metrics");

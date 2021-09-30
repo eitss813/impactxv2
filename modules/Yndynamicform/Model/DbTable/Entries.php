@@ -122,8 +122,6 @@ class Yndynamicform_Model_DbTable_Entries extends Engine_Db_Table
                 $this->addCondition($select, $valueTable, $rName, $field_id, $opArr[$key], $valueArr[$key], $typeArr[$key]);
             }
         }
-        
-        
 
         if (!empty($params['fieldOrder']) && !empty($params['direction'])) {
             $select -> order("{$params['fieldOrder']} {$params['direction']}");
@@ -163,7 +161,7 @@ class Yndynamicform_Model_DbTable_Entries extends Engine_Db_Table
         $vName = $valueTable->info('name');
         // RANDOM STRING TO PAIR EACH COMPARE
         $random = rand();
-        $select->joinLeft("$vName AS t$random$field_id", "t$random$field_id.item_id=$rName.entry_id");
+        $select->joinLeft("$vName AS t$random$field_id", "$rName.entry_id = t$random$field_id.item_id");
 
         if ($type == 'file_upload') {
             $notEmptyFields = array();
@@ -282,4 +280,20 @@ class Yndynamicform_Model_DbTable_Entries extends Engine_Db_Table
         return $select-> query()->fetchAll();
 
     }
+
+    public function getEntryIDByOwneridAndFormId($form_id,$owner_id){
+        $rName = $this->info('name');
+
+        $select = $this->select()-> from($rName, 'entry_id');
+
+        $select
+            ->where("$rName.form_id = ?", $form_id)
+            ->where("$rName.owner_id = ?", $owner_id);
+        $select->order('entry_id DESC');
+        $select->limit(1);
+
+        return $select-> query()->fetchColumn();
+
+    }
+
 }

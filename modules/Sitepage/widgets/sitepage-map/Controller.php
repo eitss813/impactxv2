@@ -22,12 +22,7 @@ class Sitepage_Widget_SitepageMapController extends Seaocore_Content_Widget_Abst
 
         //GET SUBJECT
         $this->view->sitepage = $sitepage = Engine_Api::_()->core()->getSubject('sitepage_page');
-        
-        // Check about the organization map view
-        if( !empty($sitepage->organization_map) )
-            return $this->setNoRender();
-        
-        
+
         $value['id'] = $sitepage->getIdentity();
         $this->view->location = $location = Engine_Api::_()->getDbtable('locations', 'sitepage')->getLocation($value);
 

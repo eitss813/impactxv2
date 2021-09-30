@@ -58,17 +58,16 @@ class Sitepage_Form_Settings extends Engine_Form
             ),
             'value' => '1',
         ));
-        
-        $this->addElement('Radio', 'organization_map', array(
-            'label' => 'Choose Organization Map?',
-            'description' => 'Selected map show on organization profile page.',
+
+        $this->addElement('Radio', 'after_join_notification', array(
+            'label' => 'Join Notification',
+            'description' => 'Send the join notifications to the organization admins.',
             'multiOptions' => array(
-                '1' => 'OpenStreet Map',
-                '0' => 'Google Map',
+                '1' => 'Yes, send the notifications',
+                '0' => 'No, do not send the notifications',
             ),
             'value' => '0',
         ));
-
 
         $this->addElement('Button', 'submit', array(
             'label' => 'Save Changes',

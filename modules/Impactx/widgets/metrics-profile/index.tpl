@@ -50,9 +50,9 @@
                         <div class="main_metrics_sub_info_funding">
                             <div class="main_metrics_info_amount">
                                 <?php if($this->totalAggregateValue):?>
-                                <span><?php echo $this->totalAggregateValue;?>&nbsp;<?php echo $this->metric_details['metric_unit'];?></span>
+                                <span><?php echo $this->metric_details['metric_unit'];?>  <?php echo $this->totalAggregateValue;?></span>
                                 <?php else:?>
-                                <span>0&nbsp;<?php echo $this->metric_details['metric_unit'];?></span>
+                                <span><?php echo $this->metric_details['metric_unit'];?>  0</span>
                                 <?php endif;?>
                             </div>
                         </div>

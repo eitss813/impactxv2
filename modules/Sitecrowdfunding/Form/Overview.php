@@ -106,16 +106,9 @@ class Sitecrowdfunding_Form_Overview extends Engine_Form {
         $this->addElement('Hidden', 'locationParams', array('order' => 800000));
 
         include_once APPLICATION_PATH . '/application/modules/Seaocore/Form/specificLocationElement.php';
-        
-        $this->addElement('Radio', 'project_map', array(
-            'label' => 'Choose Project Map?',
-            'description' => 'Selected map show on project profile page.',
-            'multiOptions' => array(
-                '3' => 'OpenStreet Map',
-                '2' => 'Google Map',
-            ),
-            'value' => '0',
-        ));
+
+
+
 
 
         $this->addElement('Button', 'save', array(

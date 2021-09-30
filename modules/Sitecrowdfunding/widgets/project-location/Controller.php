@@ -27,20 +27,6 @@ class Sitecrowdfunding_Widget_ProjectLocationController extends Seaocore_Content
         if (!Engine_Api::_()->getApi('settings', 'core')->getSetting('sitecrowdfunding.location', 1)) {
             return $this->setNoRender();
         }
-        
-        // Check about the organization map view
-        $project_map = !empty($project->project_map)? $project->project_map: 0;
-        if( !empty($project_map) && ($project_map > 1) ){
-            if( $project_map == 3 )
-                return $this->setNoRender();
-        }else if( !empty($project->project_id) ) {
-            $parentOrganization = Engine_Api::_()->getDbtable('pages', 'sitecrowdfunding')->getParentPages($project->project_id);
-            if( isset($parentOrganization['page_id']) && !empty($parentOrganization['page_id']) ) {
-                $sitepage = Engine_Api::_()->getItem('sitepage_page', $parentOrganization['page_id']);
-                if( !empty($sitepage->organization_map) )
-                    return $this->setNoRender();
-            }
-        }
 
         $params = $this->_getAllParams();
         $showAddress = true;

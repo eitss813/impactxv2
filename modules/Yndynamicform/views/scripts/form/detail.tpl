@@ -115,7 +115,6 @@ $this->headScript()
 
 <!-- STYLE FOR SUBMIT BUTTON FLLOW FORM SETTINGS -->
 <?php if ($this->new_entry_form): ?>
-<div id="global_form_main_error"></div>
 <div class="global_form">
     <!--  BEGIN: Config for form with form settings  -->
     <?php
@@ -172,10 +171,7 @@ $this->headScript()
 
     $this->new_entry_form->setAttribs(array('id' => 'form_detail', 'action' => "$this->formAction", 'onsubmit' => 'return validate_form()', 'enctype' => 'multipart/form-data', 'style' => $this->form->style));
     if (count($this->new_entry_form) > 1) {
-        $this->new_entry_form->submit_button->type = 'button';
-        $this->new_entry_form->submit_button->onclick = 'ajax_form_validation()';
-
-        echo $this->new_entry_form->render($this);
+    echo $this->new_entry_form->render($this);
     }
 
     // RENDER TO CONDITIONAL LOGIC
@@ -289,23 +285,15 @@ $this->headScript()
     var showPopUp = <?php echo $this->form->show_email_popup ?>;
     var clickSubmit = false;
     
-    
-    /*
-    * Validate the form fields and submit the form, If no error found!
-    */
-    function ajax_form_validation() {
-        // is_validation_ajax_called = true;
-        /*
+    function validateFormFields() {
+
         var elements = document.getElementById("form_detail").elements;
         var obj ={};
         for(var i = 0 ; i < elements.length ; i++){
             var item = elements.item(i);
             obj[item.name] = item.value;
         }
-            */
-               
-        var data = document.getElementById("form_detail").toQueryString().parseQueryString();
-        var formJson = JSON.encode(data);
+    
     
         var url = en4.core.baseUrl + 'organizations/manageforms/validate-form-fields';
         var request = new Request.HTML({
@@ -313,29 +301,50 @@ $this->headScript()
             method: 'POST',
             data: {
                 format: 'html',
-                'post_val': formJson, //JSON.stringify(obj),
+                'post_val': JSON.stringify(obj),
+                'ajaxform_option_id': '<?php echo $this->ajaxform_option_id ?>',
+                'ajaxform_field_id': '<?php echo $this->ajaxform_field_id ?>'
+            },
+            onSuccess: function (responseTree, responseElements, responseHTML, responseJavaScript) {
+                alert(responseHTML.length);
+            }
+        });
+        request.send();
+    }
+
+    function validate_form() {
+
+        var elements = document.getElementById("form_detail").elements;
+        var obj ={};
+        for(var i = 0 ; i < elements.length ; i++){
+            var item = elements.item(i);
+            obj[item.name] = item.value;
+        }
+    
+    
+        var url = en4.core.baseUrl + 'organizations/manageforms/validate-form-fields';
+        var request = new Request.HTML({
+            url: url,
+            method: 'POST',
+            data: {
+                format: 'html',
+                'post_val': JSON.stringify(obj),
                 'ajaxform_option_id': '<?php echo $this->ajaxform_option_id ?>',
                 'ajaxform_field_id': '<?php echo $this->ajaxform_field_id ?>'
             },
             onSuccess: function (responseTree, responseElements, responseHTML, responseJavaScript) {
                 if( responseHTML.length > 0 ) {
-                    window.scrollTo({top: 0, behavior: 'smooth'});
+                    console.log(responseHTML);
+                    alert("DEEPAK");
                     return false;
-                }else {
-                    if (validate_form()) {
-                        document.getElementById("form_detail").submit();
-                    } else {
-                        return false;
-                    }
                 }
             }
         });
         request.send();
-    }
+        
+        return false;
+
     
-    
-    
-    function validate_form() {
         if (totalPageBreak) {
             if (!validateRequiredFieldInPage(totalPageBreak + 1))
                 return false;
@@ -632,7 +641,6 @@ $this->headScript()
     var $j = jQuery.noConflict();
     $j(document).ready(function() {
         const metrics_field_id_array = [];
-        const matrics_aggregation_field_ids_array = [];
         var matrics_aggregation_element = null;
         var matrics_aggregation_element_id = null;
         var matrics_aggregation_field_ids = null;
@@ -652,10 +660,9 @@ $this->headScript()
                 var metrics_label = document.getElementById(matrics_aggregation_element_id+'-label').innerHTML;
                 document.getElementById(matrics_aggregation_element_id+'-label').innerHTML = metrics_label + ' (Calculated automatically)';
                 document.getElementById(matrics_aggregation_element_id).classList.add("metric_disable");
-                document.getElementById(matrics_aggregation_element_id).readOnly = true;
+                document.getElementById(matrics_aggregation_element_id).readonly = true;
                 matrics_aggregation_field_ids = element.getAttribute("metric_aggregate_fields");
                 matrics_aggregation_field_ids = matrics_aggregation_field_ids.split(" ");
-                matrics_aggregation_field_ids_array[matrics_aggregation_element_id] = matrics_aggregation_field_ids;
             }
             
             // Run the logic of Own Formula
@@ -672,10 +679,9 @@ $this->headScript()
                 
                 document.getElementById(matrics_aggregation_element_id+'-label').innerHTML = metrics_label + ' (Calculated automatically) <br />Formula: ' + own_formula_input_value;
                 document.getElementById(matrics_aggregation_element_id).classList.add("metric_disable");
-                document.getElementById(matrics_aggregation_element_id).readOnly = true;
+                document.getElementById(matrics_aggregation_element_id).readonly = true;
                 matrics_aggregation_field_ids = element.getAttribute("metric_aggregate_fields");
                 matrics_aggregation_field_ids = matrics_aggregation_field_ids.split(" ");
-                matrics_aggregation_field_ids_array[matrics_aggregation_element_id] = matrics_aggregation_field_ids;
             }
             
             // Convert plain text links to clickable links
@@ -802,8 +808,7 @@ $this->headScript()
                     var full_id = element.id;
                     id = id.split('_');
                     id = id[id.length - 1];
-
-                    var isExistYn = matrics_aggregation_field_ids_array[current_metrics_id].includes(id);
+                    var isExistYn = matrics_aggregation_field_ids.includes(id);
 
                     if(isExistYn === true){
                         var data = document.getElementById(full_id).value;
@@ -821,7 +826,7 @@ $this->headScript()
                     }
                 }
 
-                if( temp_metric_aggregate_type == 'own_formula' && own_formula != null && (own_formula.search("field_id_") < 0) ) {
+                if( temp_metric_aggregate_type == 'own_formula' ) {
                     var formula_value = eval(own_formula);
                     formula_value = formula_value.toFixed(2);
                     document.getElementById(current_metrics_id).value = formula_value;

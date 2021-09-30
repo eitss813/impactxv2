@@ -35,9 +35,18 @@ class Yndynamicform_Model_DbTable_Forms extends Engine_Db_Table
         $tmTable = Engine_Api::_() -> getDbtable('TagMaps', 'core');
         $tmName = $tmTable -> info('name');
 
-        $select = $this -> select() -> from($rName) -> setIntegrityCheck(false);
+        $formmappingTable = Engine_Api::_()->getDbtable('formmappings', 'impactx');
+        $formmappingTableName = $formmappingTable -> info('name');
 
+        // get All mapping forms
+        $mappingForms = $formmappingTable->getAllMappingFormId();
+
+        $select = $this -> select() -> from($rName) -> setIntegrityCheck(false);
+        $select
+        -> joinLeft($formmappingTableName,  $formmappingTableName. '.form_id=' . $rName . '.form_id', null);
+       
         // Keyword
+        //$params['keyword'] = 'admin';
         if (!empty($params['keyword'])) {
             $searchTable = Engine_Api::_() -> getDbtable('search', 'core');
             $sName = $searchTable -> info('name');
@@ -46,7 +55,7 @@ class Yndynamicform_Model_DbTable_Forms extends Engine_Db_Table
                 -> where($sName . '.type = ?', 'yndynamicform_form')
                 -> where($sName . '.title LIKE ?', "%{$params['keyword']}%");
         }
-
+        $select-> where($rName . '.form_id NOT IN (?)', $mappingForms );
         // Title
         if (!empty($params['title'])) {
             $select -> where("$rName.title LIKE ?", "%{$params['title']}%");
@@ -108,7 +117,7 @@ class Yndynamicform_Model_DbTable_Forms extends Engine_Db_Table
         if (isset($params['form_id'])) {
             $select -> where("$rName.form_id <> ?", $params['form_id']);
         }
-
+      
         // get forms assigned
         $projectFormSelect = $projectFormTable ->select()
             ->from($projectFormName,array('count(*)'))
@@ -163,7 +172,7 @@ class Yndynamicform_Model_DbTable_Forms extends Engine_Db_Table
         if (isset($params['limit'])) {
             $select -> limit($params['limit']);
         }
-
+       
         return $select;
     }
 
@@ -299,6 +308,7 @@ class Yndynamicform_Model_DbTable_Forms extends Engine_Db_Table
         if (isset($params['limit'])) {
             $select -> limit($params['limit']);
         }
+       
         return $select;
     }
 
